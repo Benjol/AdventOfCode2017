@@ -1,7 +1,6 @@
 let input = 312051
 type Direction = Up | Down | Left | Right
 type Corner = { Direction: Direction; X: int; Y: int; Count: int }
-Seq.unfold
 let develop c (steps, dir) =
     match dir with
     | Up -> { Direction = dir; X = c.X; Y = c.Y + steps; Count = c.Count + steps }
