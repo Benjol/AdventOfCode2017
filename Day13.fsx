@@ -18,10 +18,9 @@ let scans =
         |> Array.map (fun def -> def.Split ':' |> Array.map int)
         |> Array.map (fun a -> a.[0], a.[1])
 
-let hits offset =
-    scans
-        |> Array.Parallel.map (fun (depth, range) -> triangle (range - 1) (depth + offset))
-        |> Seq.filter (fun pos -> pos = 0)
-        |> Seq.length
+let nohits offset = 
+    scans 
+        |> Seq.exists (fun (depth, range) -> triangle (range - 1) (depth + offset) = 0) 
+        |> not
 
-Seq.initInfinite id |> Seq.find (fun t -> hits t = 0)
+Seq.initInfinite id |> Seq.find nohits
