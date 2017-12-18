@@ -9,6 +9,7 @@ jgz a -1
 set a 1
 jgz a -2"
 
+
 type Instruction =
     | Snd of Value
     | Set of string * Value
@@ -17,11 +18,11 @@ type Instruction =
     | Mod of string * Value
     | Recover of Value
     | Jump of Value * Value
-and Value = Register of string | Number of int
+and Value = Register of string | Number of int64
 
 let parse (str:string) =
     let arr = str.Split ' '
-    let value str = match System.Int32.TryParse str with
+    let value str = match System.Int64.TryParse str with
                     | true, v -> Number(v)
                     | false, _ -> Register(str)
     match arr.[0] with
@@ -37,11 +38,13 @@ let parse (str:string) =
 let instructions = input.Split([|'\r';'\n'|]) |> Array.map parse
 
 let rec execute (ptr, frq, map) =
-    let getReg r = match Map.tryFind r map with Some(n) -> n | None -> 0
+    let getReg r = match Map.tryFind r map with Some(n) -> n | None -> 0L
     let getVal = function Register(r) -> getReg r | Number(n) -> n
     if ptr < 0 || ptr >= instructions.Length then
         None
     else
+//        printfn "-> %A" map
+//        printf "%A %A %A" ptr instructions.[ptr] frq
         match instructions.[ptr] with
         | Snd(v) -> execute (ptr + 1, Some(getVal v), map)
         | Set(r, v) -> execute (ptr + 1, frq, Map.add r (getVal v) map)
@@ -49,10 +52,10 @@ let rec execute (ptr, frq, map) =
         | Mul(r, v) -> execute (ptr + 1, frq, Map.add r (getReg r * getVal v) map)
         | Mod(r, v) -> execute (ptr + 1, frq, Map.add r (getReg r % getVal v) map)
         | Recover(v) -> match getVal v with
-                        | 0 -> execute(ptr + 1, frq, map)
+                        | 0L -> execute(ptr + 1, frq, map)
                         | _ -> frq
         | Jump(v1,v2) -> match getVal v1 with
-                            | 0 -> execute (ptr + 1, frq, map)
-                            | _ -> execute (ptr + getVal v2, frq, map)
+                            | 0L -> execute (ptr + 1, frq, map)
+                            | _ -> execute (ptr + int (getVal v2), frq, map)
 
 let part1 = execute (0, None, Map.empty)
