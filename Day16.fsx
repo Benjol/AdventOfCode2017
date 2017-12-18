@@ -9,7 +9,6 @@ let parse (step:string) =
     | 'x' -> Exchange(step.Substring(1).Split '/' |> Array.map int |> tup)
     | _ -> Partner(step.Substring(1).Split '/' |> Array.map char |> tup)
 
-let floor = initial |> Seq.toArray
 let swap (arr:array<_>) a b =
     let tmp = arr.[a]
     arr.[a] <- arr.[b]
@@ -26,4 +25,18 @@ let danse floor step =
         let b = floor |> Array.findIndex (fun c -> c = y)
         swap floor a b
 
-input.Split ',' |> Seq.map parse |> Seq.fold danse floor |> System.String
+let apply instructions floor = instructions |> Seq.fold danse floor
+
+let instructions = input.Split ',' |> Array.map parse
+let floor = initial |> Seq.toArray
+
+let part1 = floor.[*] |> apply instructions |> System.String
+
+let iterations = 1000000000
+
+let rec unfold f state = Seq.unfold (fun state -> let r = f state in Some(r,r)) state
+
+let cycle = floor.[*] |> unfold (apply instructions) |> Seq.map System.String |> Seq.takeWhile ((<>) initial) |> Seq.toList
+let cycle' = initial :: cycle
+let offset = iterations % (List.length cycle')
+let part2 = cycle'.[offset]
