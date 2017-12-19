@@ -59,3 +59,39 @@ let rec execute (ptr, frq, map) =
                             | _ -> execute (ptr + int (getVal v2), frq, map)
 
 let part1 = execute (0, None, Map.empty)
+
+//works for sample case, but not for test input. Parked here for further reference
+let rec execute2 (id, ptr, input, output, registers, snds) =
+    let getReg r = match Map.tryFind r registers with Some(n) -> n | None -> 0L
+    let getVal = function Register(r) -> getReg r | Number(n) -> n
+    if ptr < 0 || ptr >= instructions.Length then
+        (ptr, input, output, registers, snds)
+    else
+        printfn "-> %A %A" registers output
+        printf "%A: %A %A %A" id ptr instructions.[ptr] input
+        match instructions.[ptr] with
+        | Snd(v) -> execute2 (id, ptr + 1, input, (getVal v) :: output, registers, snds + 1)
+        | Set(r, v) -> execute2 (id, ptr + 1, input, output, Map.add r (getVal v) registers, snds)
+        | Add(r, v) -> execute2 (id, ptr + 1, input, output, Map.add r (getReg r + getVal v) registers, snds)
+        | Mul(r, v) -> execute2 (id, ptr + 1, input, output, Map.add r (getReg r * getVal v) registers, snds)
+        | Mod(r, v) -> execute2 (id, ptr + 1, input, output, Map.add r (getReg r % getVal v) registers, snds)
+        | Recover(Register r) ->
+                        match input with
+                        | h::t -> execute2 (id, ptr + 1, t, output, Map.add r h registers, snds)
+                        | _ -> (ptr, input, output, registers, snds)
+        | Recover(Number n) -> failwith "Boom!"
+        | Jump(v1,v2) -> match getVal v1 with
+                            | 0L -> execute2 (id, ptr + 1, input, output, registers, snds)
+                            | _ -> execute2 (id, ptr + int (getVal v2), input, output, registers, snds)
+
+let run2 () =
+    let rec runToDeadlock (p0ptr, p0input, p0output, p0reg, p0snds) (p1ptr, p1input, p1output, p1reg, p1snds) =
+        let (p0ptr, _, p0output, p0reg, p0snds) as p0 = execute2 ("0", p0ptr, List.rev p1output, [], p0reg, p0snds)
+        let (p1ptr, _, p1output, p1reg, p1snds) as p1 = execute2 ("1", p1ptr, List.rev p0output, [], p1reg, p1snds)
+        match (p0output, p1output) with
+        | [], [] -> p1snds
+        | _ -> runToDeadlock p0 p1
+
+    runToDeadlock (0, [], [], Map [("p", 0L)], 0) (0, [], [], Map [("p", 1L)], 0)
+
+run2()
