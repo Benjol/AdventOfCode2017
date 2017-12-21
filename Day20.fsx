@@ -44,3 +44,9 @@ let tick p =
     { p with P = (px + vx + ax, py + vy + ay, pz + vz + az); V = (vx + ax, vy + ay, vz + az) }
 
 Seq.unfold (fun p -> Some(p |> Array.indexed |> Array.minBy (fun (i,p) -> manhattan p.P) |> fst, p |> Array.map tick)) particles |> Seq.skip (int runtime) |> Seq.take 10 |> Seq.toList
+
+//part 2
+let prune particles = particles |> Seq.groupBy (fun p -> p.P) |> Seq.filter (fun (_,g) -> Seq.length g = 1) |> Seq.collect snd
+
+//Hacky, just run it until 'stable' then suppose that it's the answer (worked for me!)
+Seq.unfold (fun p -> Some(p |> Seq.length, p |> Array.Parallel.map tick |> prune |> Array.ofSeq)) particles |> Seq.take 300 |> Seq.iter (printfn "%A")
