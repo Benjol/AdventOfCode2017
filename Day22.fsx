@@ -43,3 +43,27 @@ let rec sporifica notclean iterations infect =
 
 let iterations = 100
 sporifica notclean iterations viruspart2
+
+(* mutable = about 10 times faster
+open System.Collections.Generic
+let rec sporifica notclean iterations infect =
+    let lookup = new Dictionary<_,_>()
+    for(k,v) in notclean do lookup.Add(k,v)
+
+    let rec burst (pos, direction, count, remaining) =
+        if remaining = 0 then
+            count
+        else
+            let (found, value) = lookup.TryGetValue(pos)
+            let (directionOp, state, countOp) = infect (found, value)
+            let direction = directionOp direction
+            match state with
+            | Some(c) ->
+                if found then lookup.[pos] <- c else lookup.Add(pos, c)
+                burst (step pos direction, direction, countOp count, remaining - 1)
+            | None ->
+                lookup.Remove(pos) |> ignore
+                burst (step pos direction, direction, countOp count, remaining - 1)
+
+    burst ((0,0), Up, 0, iterations)
+*)
