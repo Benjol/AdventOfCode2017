@@ -29,5 +29,7 @@ let rec build port list remaining =
                             |> List.ofSeq
     list :: matches
 
-build 0 [] components |> List.map (fun l -> l |> List.sumBy (fun c -> c.Score)) |> List.max
+let part1 = build 0 [] components |> List.map (fun l -> l |> List.sumBy (fun c -> c.Score)) |> List.max
+
+let part2 = build 0 [] components |> Seq.map (fun l -> l |> List.length, l |> List.sumBy (fun c -> c.Score)) |> Seq.sortByDescending id |> Seq.head |> snd
     
